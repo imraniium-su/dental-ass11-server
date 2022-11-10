@@ -22,9 +22,10 @@ async function run() {
         const reviewCollection = client.db('dentalCare').collection('reviews');
 
         app.get('/services', async (req, res) => {
+            const size = parseInt(req.query.size)
             const query = {}
             const cursor = serviceCollection.find(query);
-            const services = await cursor.toArray();
+            const services = await cursor.limit(size).toArray();
             res.send(services);
         })
         app.get('/services/:id', async (req, res) => {
@@ -55,6 +56,18 @@ async function run() {
         app.post('/reviews', async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        })
+        app.patch('/reviews/:id', async (req, res) => {
+            const id = req.params.id;
+            const status = req.body.status;
+            const query = { _id: ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await reviewCollection.updateOne(query, updatedDoc);
             res.send(result);
         })
         app.delete('/reviews/:id', async (req, res) => {
